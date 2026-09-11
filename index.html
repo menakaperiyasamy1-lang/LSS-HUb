@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LSS Hub — Learning Support System</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{
+    --navy:#1B2A6B;--teal:#0D6E8A;--teal-light:#1a8aaa;
+    --bg:#F7F9FC;--sidebar:#1B2A6B;--white:#fff;
+    --text:#1a1a2e;--muted:#6b7280;--border:#e2e8f0;
+    --green:#10b981;--amber:#f59e0b;--red:#ef4444;
+    --card:#fff;--shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.06);
+  }
+  body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh;font-size:14px}
+
+  /* SIDEBAR */
+  .sidebar{width:240px;background:var(--sidebar);color:#fff;display:flex;flex-direction:column;flex-shrink:0;position:fixed;height:100vh;overflow-y:auto}
+  .sidebar-logo{padding:24px 20px 20px;border-bottom:1px solid rgba(255,255,255,.1)}
+  .sidebar-logo .brand{font-size:18px;font-weight:700;letter-spacing:-.3px}
+  .sidebar-logo .sub{font-size:11px;color:rgba(255,255,255,.5);margin-top:2px}
+  .sidebar-nav{padding:16px 0;flex:1}
+  .nav-section{font-size:10px;font-weight:600;color:rgba(255,255,255,.35);padding:8px 20px 4px;letter-spacing:.8px;text-transform:uppercase}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:9px 20px;color:rgba(255,255,255,.7);cursor:pointer;transition:all .15s;font-size:13px;border-left:3px solid transparent}
+  .nav-item:hover{background:rgba(255,255,255,.07);color:#fff}
+  .nav-item.active{background:rgba(13,110,138,.3);color:#fff;border-left-color:var(--teal-light)}
+  .nav-item svg{width:16px;height:16px;flex-shrink:0}
+  .sidebar-user{padding:16px 20px;border-top:1px solid rgba(255,255,255,.1);display:flex;align-items:center;gap:10px}
+  .avatar{width:32px;height:32px;border-radius:50%;background:var(--teal);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px;flex-shrink:0}
+  .user-info .name{font-size:13px;font-weight:500}
+  .user-info .role{font-size:11px;color:rgba(255,255,255,.45)}
+
+  /* MAIN */
+  .main{margin-left:240px;flex:1;display:flex;flex-direction:column;min-height:100vh}
+  .topbar{background:#fff;border-bottom:1px solid var(--border);padding:0 28px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+  .topbar-title{font-size:15px;font-weight:600;color:var(--navy)}
+  .topbar-actions{display:flex;align-items:center;gap:12px}
+  .badge{background:#fef3c7;color:#92400e;font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px}
+  .btn{padding:8px 16px;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all .15s;font-family:'Inter',sans-serif}
+  .btn-primary{background:var(--teal);color:#fff}
+  .btn-primary:hover{background:var(--teal-light)}
+  .btn-outline{background:#fff;color:var(--navy);border:1px solid var(--border)}
+  .btn-outline:hover{border-color:var(--teal);color:var(--teal)}
+
+  .content{padding:28px;flex:1}
+
+  /* STATS ROW */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}
+  .stat-card{background:var(--white);border-radius:10px;padding:18px 20px;box-shadow:var(--shadow);border:1px solid var(--border)}
+  .stat-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+  .stat-value{font-size:26px;font-weight:700;color:var(--navy);margin:6px 0 2px;letter-spacing:-1px}
+  .stat-sub{font-size:12px;color:var(--muted)}
+  .stat-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px}
+
+  /* UPLOAD AREA */
+  .upload-section{background:#fff;border-radius:10px;border:2px dashed var(--border);padding:28px;text-align:center;margin-bottom:24px;cursor:pointer;transition:border-color .2s}
+  .upload-section:hover,.upload-section.drag{border-color:var(--teal);background:#f0f9ff}
+  .upload-icon{width:44px;height:44px;background:#e0f2fe;border-radius:10px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px}
+  .upload-title{font-size:14px;font-weight:600;color:var(--navy);margin-bottom:4px}
+  .upload-sub{font-size:12px;color:var(--muted)}
+  .upload-tags{display:flex;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap}
+  .tag{background:#f1f5f9;color:#475569;font-size:11px;font-weight:500;padding:3px 10px;border-radius:20px}
+
+  /* AI PROCESSING */
+  .ai-result{background:#fff;border-radius:10px;border:1px solid var(--border);box-shadow:var(--shadow);margin-bottom:24px;overflow:hidden;display:none}
+  .ai-result.show{display:block}
+  .ai-header{background:linear-gradient(135deg,var(--navy) 0%,var(--teal) 100%);padding:16px 20px;color:#fff;display:flex;align-items:center;gap:10px}
+  .ai-header svg{width:18px;height:18px}
+  .ai-header .title{font-size:13px;font-weight:600}
+  .ai-header .sub{font-size:11px;opacity:.7;margin-top:1px}
+  .ai-body{padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .ai-field{background:#f8fafc;border-radius:8px;padding:14px}
+  .ai-field-label{font-size:10px;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px}
+  .ai-field-value{font-size:13px;color:var(--text);line-height:1.5}
+  .ai-field.wide{grid-column:span 2}
+  .chip{display:inline-flex;align-items:center;gap:4px;background:#e0f2fe;color:var(--teal);font-size:11px;font-weight:500;padding:3px 9px;border-radius:20px;margin:2px}
+  .chip.green{background:#d1fae5;color:#065f46}
+  .chip.amber{background:#fef3c7;color:#92400e}
+
+  /* STUDENT TABLE */
+  .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+  .section-title{font-size:14px;font-weight:600;color:var(--navy)}
+  .table-wrap{background:#fff;border-radius:10px;border:1px solid var(--border);box-shadow:var(--shadow);overflow:hidden}
+  table{width:100%;border-collapse:collapse}
+  th{background:#f8fafc;padding:10px 16px;text-align:left;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border)}
+  td{padding:12px 16px;border-bottom:1px solid #f1f5f9;font-size:13px;vertical-align:middle}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:#f8fafc}
+  .status{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:500;padding:3px 10px;border-radius:20px}
+  .status.active{background:#d1fae5;color:#065f46}
+  .status.review{background:#fef3c7;color:#92400e}
+  .status.new{background:#e0e7ff;color:#3730a3}
+  .student-name{font-weight:500;color:var(--navy)}
+  .goal-bar{background:#e2e8f0;border-radius:4px;height:6px;width:80px;overflow:hidden;display:inline-block;vertical-align:middle;margin-left:6px}
+  .goal-fill{height:100%;background:var(--teal);border-radius:4px}
+  .action-btn{background:none;border:none;cursor:pointer;color:var(--teal);font-size:12px;font-weight:500;padding:4px 8px;border-radius:4px}
+  .action-btn:hover{background:#e0f2fe}
+
+  /* PROCESSING ANIMATION */
+  .processing{display:none;text-align:center;padding:24px}
+  .processing.show{display:block}
+  .spinner{width:36px;height:36px;border:3px solid #e2e8f0;border-top-color:var(--teal);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 12px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .processing-text{font-size:13px;color:var(--muted)}
+  .processing-steps{margin-top:12px;text-align:left;max-width:280px;margin-left:auto;margin-right:auto}
+  .step{font-size:12px;padding:4px 0;color:var(--muted);display:flex;align-items:center;gap:8px}
+  .step.done{color:var(--green)}
+  .step.active{color:var(--teal);font-weight:500}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="brand">LSS Hub</div>
+    <div class="sub">Learning Support System</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">Main</div>
+    <div class="nav-item active">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+      Dashboard
+    </div>
+    <div class="nav-item">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+      Upload Documents
+    </div>
+    <div class="nav-item">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      Student Caseload
+    </div>
+    <div class="nav-item">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+      Goal Tracker
+    </div>
+    <div class="nav-section" style="margin-top:8px">Access</div>
+    <div class="nav-item">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+      Permissions
+    </div>
+    <div class="nav-item">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      Settings
+    </div>
+  </nav>
+  <div class="sidebar-user">
+    <div class="avatar">MP</div>
+    <div class="user-info">
+      <div class="name">Menaka P.</div>
+      <div class="role">Admin</div>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="topbar">
+    <div class="topbar-title">Dashboard</div>
+    <div class="topbar-actions">
+      <span class="badge">AY 2025–26</span>
+      <button class="btn btn-outline">Export Report</button>
+      <button class="btn btn-primary" onclick="triggerUpload()">+ Upload PDF</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- STATS -->
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-label">Total Students</div>
+        <div class="stat-value">47</div>
+        <div class="stat-sub"><span class="stat-dot" style="background:#10b981"></span>On active plans</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Documents Processed</div>
+        <div class="stat-value">124</div>
+        <div class="stat-sub"><span class="stat-dot" style="background:#0D6E8A"></span>By Gemini AI</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Goals This Term</div>
+        <div class="stat-value">83</div>
+        <div class="stat-sub"><span class="stat-dot" style="background:#f59e0b"></span>14 due for review</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Pending Reviews</div>
+        <div class="stat-value">6</div>
+        <div class="stat-sub"><span class="stat-dot" style="background:#ef4444"></span>Action required</div>
+      </div>
+    </div>
+
+    <!-- UPLOAD -->
+    <div class="upload-section" id="uploadArea" onclick="simulateUpload()" ondragover="this.classList.add('drag')" ondragleave="this.classList.remove('drag')">
+      <div class="upload-icon">
+        <svg width="22" height="22" fill="none" stroke="#0D6E8A" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+      </div>
+      <div class="upload-title">Drop a student PDF here, or click to upload</div>
+      <div class="upload-sub">Gemini AI will extract learner profile, accommodations & goals automatically</div>
+      <div class="upload-tags">
+        <span class="tag">ILP</span><span class="tag">BIP</span><span class="tag">STP</span><span class="tag">Assessment Report</span>
+      </div>
+    </div>
+
+    <!-- PROCESSING -->
+    <div class="ai-result" id="processingBlock">
+      <div class="ai-header">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+        <div><div class="title">Gemini AI — Document Processing</div><div class="sub">Extracting structured data from uploaded PDF…</div></div>
+      </div>
+      <div class="processing show" id="processingAnim">
+        <div class="spinner"></div>
+        <div class="processing-text">Analysing document with Gemini API</div>
+        <div class="processing-steps" id="steps">
+          <div class="step active" id="s1">⟳ Reading PDF structure…</div>
+          <div class="step" id="s2">○ Identifying student information…</div>
+          <div class="step" id="s3">○ Extracting accommodations & goals…</div>
+          <div class="step" id="s4">○ Generating structured JSON output…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI RESULT -->
+    <div class="ai-result" id="aiResult">
+      <div class="ai-header">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <div><div class="title">AI Extraction Complete — Aditya Sharma · ILP 2025–26</div><div class="sub">Gemini API processed in 3.2s · Confidence: 97%</div></div>
+      </div>
+      <div class="ai-body">
+        <div class="ai-field">
+          <div class="ai-field-label">Student</div>
+          <div class="ai-field-value"><strong>Aditya Sharma</strong> · Grade 7 · ID #20234</div>
+        </div>
+        <div class="ai-field">
+          <div class="ai-field-label">Plan Type</div>
+          <div class="ai-field-value">Individual Learning Plan (ILP) · Active</div>
+        </div>
+        <div class="ai-field wide">
+          <div class="ai-field-label">Accommodations</div>
+          <div class="ai-field-value">
+            <span class="chip">Extended time (1.5×)</span>
+            <span class="chip">Preferential seating</span>
+            <span class="chip">Chunked instructions</span>
+            <span class="chip">Reduced writing load</span>
+            <span class="chip">Oral response option</span>
+          </div>
+        </div>
+        <div class="ai-field wide">
+          <div class="ai-field-label">Learning Goals — This Term</div>
+          <div class="ai-field-value">
+            <span class="chip green">Reading fluency: 120 wpm target</span>
+            <span class="chip green">Math problem-solving strategies</span>
+            <span class="chip amber">Written expression — paragraph structure</span>
+          </div>
+        </div>
+        <div class="ai-field wide">
+          <div class="ai-field-label">Learner Profile Snapshot</div>
+          <div class="ai-field-value" style="line-height:1.7">Aditya demonstrates strong verbal reasoning and benefits from visual scaffolding. Responds well to structured routines and positive reinforcement. Challenges observed in sustained written tasks and working memory load. Peer interaction is a strength to leverage.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STUDENT TABLE -->
+    <div class="section-header">
+      <div class="section-title">Student Caseload — Grade 6–8</div>
+      <button class="btn btn-outline" style="font-size:12px;padding:6px 12px">Filter by Grade</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Student</th><th>Grade</th><th>Plan</th><th>Accommodations</th><th>Goal Progress</th><th>Status</th><th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="student-name">Aditya Sharma</td><td>7</td><td>ILP</td>
+            <td><span class="chip">Extended time</span><span class="chip">Oral response</span></td>
+            <td>68%<div class="goal-bar"><div class="goal-fill" style="width:68%"></div></div></td>
+            <td><span class="status active">Active</span></td>
+            <td><button class="action-btn">View</button></td>
+          </tr>
+          <tr>
+            <td class="student-name">Priya Nair</td><td>6</td><td>BIP</td>
+            <td><span class="chip">Sensory breaks</span><span class="chip">Visual schedule</span></td>
+            <td>45%<div class="goal-bar"><div class="goal-fill" style="width:45%"></div></div></td>
+            <td><span class="status review">Review</span></td>
+            <td><button class="action-btn">View</button></td>
+          </tr>
+          <tr>
+            <td class="student-name">Lucas Ferreira</td><td>8</td><td>STP</td>
+            <td><span class="chip">Chunked tasks</span><span class="chip">Graphic organisers</span></td>
+            <td>82%<div class="goal-bar"><div class="goal-fill" style="width:82%"></div></div></td>
+            <td><span class="status active">Active</span></td>
+            <td><button class="action-btn">View</button></td>
+          </tr>
+          <tr>
+            <td class="student-name">Hana Tanaka</td><td>6</td><td>ILP</td>
+            <td><span class="chip">Reduced load</span><span class="chip">L1 support</span></td>
+            <td>91%<div class="goal-bar"><div class="goal-fill" style="width:91%"></div></div></td>
+            <td><span class="status active">Active</span></td>
+            <td><button class="action-btn">View</button></td>
+          </tr>
+          <tr>
+            <td class="student-name">Omar Al-Rashid</td><td>7</td><td>ILP</td>
+            <td><span class="chip">Extended time</span><span class="chip">Scribe option</span></td>
+            <td>37%<div class="goal-bar"><div class="goal-fill" style="width:37%"></div></div></td>
+            <td><span class="status new">New</span></td>
+            <td><button class="action-btn">View</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</main>
+
+<script>
+function triggerUpload(){
+  document.getElementById('uploadArea').style.display='none';
+  document.getElementById('processingBlock').classList.add('show');
+  let steps=['s1','s2','s3','s4'];
+  let labels=['✓ PDF structure read','✓ Student identified: Aditya Sharma','✓ 5 accommodations · 3 goals extracted','✓ JSON output validated'];
+  let i=0;
+  function nextStep(){
+    if(i>0){
+      let el=document.getElementById(steps[i-1]);
+      el.textContent=labels[i-1];
+      el.className='step done';
+    }
+    if(i<steps.length){
+      document.getElementById(steps[i]).className='step active';
+      document.getElementById(steps[i]).textContent='⟳ '+document.getElementById(steps[i]).textContent.replace('○ ','');
+      i++;
+      setTimeout(nextStep,900);
+    } else {
+      setTimeout(()=>{
+        document.getElementById('processingBlock').style.display='none';
+        document.getElementById('aiResult').classList.add('show');
+        document.getElementById('uploadArea').style.display='block';
+        // reset
+        steps.forEach((s,j)=>{
+          document.getElementById(s).className='step'+(j===0?' active':'');
+          if(j===0)document.getElementById(s).textContent='⟳ Reading PDF structure…';
+        });
+        i=0;
+      },600);
+    }
+  }
+  nextStep();
+}
+</script>
+</body>
+</html>
